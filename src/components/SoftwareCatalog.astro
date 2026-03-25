@@ -121,6 +121,7 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
       <colgroup>
         <col class="col-name" />
         <col class="col-version" />
+        <col class="col-download" />
         <col class="col-method" />
         <col class="col-date" />
         <col class="col-checked" />
@@ -129,6 +130,7 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
         <tr>
           <th>Software</th>
           <th>Latest</th>
+          <th></th>
           <th>Method</th>
           <th>Released</th>
           <th>Checked</th>
@@ -137,7 +139,7 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
       {orderedCategories.map(category => (
         <tbody class="catalog-category" data-category={category}>
           <tr class="category-header">
-            <td colspan="5">
+            <td colspan="6">
               <h3 id={category}>{categoryLabels[category] || category}</h3>
             </td>
           </tr>
@@ -164,14 +166,15 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
                 </td>
                 <td class="col-version">
                   {displayVersion
-                    ? (v?.download_url
-                        ? <a href={v.download_url} class="version-badge" target="_blank" rel="noopener" title="Download">{displayVersion} ↓</a>
-                        : <span class="version-badge">{displayVersion}</span>)
+                    ? <span class="version-badge">{displayVersion}</span>
                     : displayDate
-                      ? (v?.download_url
-                          ? <a href={v.download_url} class="date-badge" target="_blank" rel="noopener" title="Download (checked {displayDate})">{displayDate} ↓</a>
-                          : <span class="date-badge" title="Version checked by date">{displayDate}</span>)
+                      ? <span class="date-badge" title="Checked by date">{displayDate}</span>
                       : <span class="version-na">—</span>}
+                </td>
+                <td class="col-download">
+                  {v?.download_url && (
+                    <a href={v.download_url} class="download-btn" target="_blank" rel="noopener" title="Download">↓</a>
+                  )}
                 </td>
                 <td class="col-method">
                   {v?.check_method && (
@@ -274,11 +277,12 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
     table-layout: fixed;
   }
 
-  col.col-name    { width: 40%; }
-  col.col-version { width: 14%; }
-  col.col-method  { width: 12%; }
-  col.col-date    { width: 17%; }
-  col.col-checked { width: 17%; }
+  col.col-name     { width: 36%; }
+  col.col-version  { width: 12%; }
+  col.col-download { width: 4%; }
+  col.col-method   { width: 10%; }
+  col.col-date     { width: 19%; }
+  col.col-checked  { width: 19%; }
 
   th {
     text-align: left;
@@ -358,6 +362,26 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
 
   a.date-badge:hover {
     background: var(--sl-color-gray-4);
+    color: var(--sl-color-bg);
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  .download-btn:hover {
+    background: var(--sl-color-accent);
     color: var(--sl-color-bg);
   }
 

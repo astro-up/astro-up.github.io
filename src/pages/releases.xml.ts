@@ -21,8 +21,8 @@ export function GET(context: APIContext) {
     .filter(([id, v]) => {
       // Only include entries that exist in manifests (prune stale)
       if (!software[id]) return false;
-      // Must have a real version (not date-based http_head placeholders)
-      if (!v.latest_version || v.latest_version.startsWith('20')) return false;
+      // Must have some version data
+      if (!v.latest_version) return false;
       return true;
     })
     .map(([id, v]) => {

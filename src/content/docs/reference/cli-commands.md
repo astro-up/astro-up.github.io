@@ -21,7 +21,7 @@ Check for available updates without installing anything.
 
 ```bash
 astro-up check             # Check all packages
-astro-up check nina phd2   # Check specific packages
+astro-up check nina-app phd2-app   # Check specific packages
 ```
 
 ## `astro-up update`
@@ -30,7 +30,7 @@ Download and install updates.
 
 ```bash
 astro-up update --all      # Update everything
-astro-up update nina phd2  # Update specific packages
+astro-up update nina-app phd2-app  # Update specific packages
 astro-up update --dry-run  # Show what would be updated
 ```
 

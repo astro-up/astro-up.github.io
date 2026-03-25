@@ -10,7 +10,7 @@ Astro-Up is organized into independent packages, each corresponding to a specifi
 ```
 cmd/astro-up/         Entry point (CLI or GUI routing)
 internal/core/        Domain types, interfaces, events
-internal/config/      Koanf app config + TOML manifest loading
+internal/config/      Koanf app config + path resolution
 internal/catalog/     Manifest fetching, three-tier cache, minisign verification
 internal/detect/      Version detection (registry, PE, config, file)
 internal/provider/    Remote version checking (GitHub, GitLab, HTTP)

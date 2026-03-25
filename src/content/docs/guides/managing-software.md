@@ -32,7 +32,7 @@ astro-up update --all
 ### Update specific packages
 
 ```bash
-astro-up update nina phd2 astap
+astro-up update nina-app phd2-app astap-app
 ```
 
 ### What happens during an update

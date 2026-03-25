@@ -64,7 +64,7 @@ task setup          # Install dependencies and hooks
 task build          # Build the application
 task test           # Run all tests
 task lint           # Run linters
-task docs:stats     # Generate catalog data for docs (requires manifests repo clone)
-task docs:dev       # Start docs dev server
 wails dev           # Run with hot reload (GUI + backend)
 ```
+
+Docs are in a [separate repository](https://github.com/astro-up/astro-up.github.io).

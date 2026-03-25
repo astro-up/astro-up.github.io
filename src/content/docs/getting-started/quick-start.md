@@ -27,8 +27,8 @@ astro-up check
 # Update everything
 astro-up update --all
 
-# Update specific software
-astro-up update nina phd2
+# Update specific software (use manifest IDs from the catalog)
+astro-up update nina-app phd2-app
 
 # Add a custom tool from GitHub
 astro-up add https://github.com/owner/repo

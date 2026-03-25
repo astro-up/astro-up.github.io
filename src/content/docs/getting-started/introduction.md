@@ -7,7 +7,7 @@ Astro-Up is a purpose-built package manager for astrophotography software on Win
 
 ## The Problem
 
-Setting up an astrophotography imaging PC means installing dozens of applications, drivers, and tools from different vendors. Keeping everything updated requires visiting multiple websites, checking version numbers, and running installers manually — often in the field with limited connectivity.
+Setting up an astrophotography imaging PC means installing dozens of applications, drivers, and tools from different vendors. Keeping everything updated requires visiting multiple websites, checking version numbers, and running installers manually. Whether your imaging PC is a permanent observatory setup you rarely touch, or a portable rig you take to dark sites, managing software across all those vendors is tedious and error-prone.
 
 ## What Astro-Up Does
 
@@ -18,11 +18,11 @@ Astro-Up manages the complete lifecycle of your imaging software:
 - **Backup** configuration before upgrading (profiles, settings, equipment configs)
 - **Install and update** software silently or interactively
 - **Manage dependencies** (ASCOM platform, .NET runtimes, USB drivers)
-- **Track** star databases and offline resources (ASTAP catalogs, N.I.N.A. sky atlas)
+- **Track** star databases and resources (ASTAP catalogs, N.I.N.A. framing cache)
 
 ## Key Design Principles
 
-- **Field-first** — dark theme, offline-capable, reliable on imaging PCs
+- **Imaging-PC optimized** — dark theme, lightweight, fast on low-spec hardware
 - **Major version awareness** — warns before breaking upgrades
 - **Config backup** — automatic backup before every upgrade
 - **Extensible** — TOML manifests make adding new software trivial

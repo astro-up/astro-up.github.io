@@ -1,0 +1,389 @@
+---
+interface Software {
+  name: string;
+  vendor: string;
+  type: string;
+  category: string;
+  description: string;
+  homepage: string;
+}
+
+interface VersionEntry {
+  latest_version: string | null;
+  download_url: string;
+  checked_at: string;
+  check_method: string;
+  release_date?: string;
+  changelog?: string;
+  http_metadata?: {
+    last_modified?: string;
+    content_length?: number;
+  };
+}
+
+interface Props {
+  software: Record<string, Software>;
+  versions: Record<string, VersionEntry>;
+}
+
+const { software, versions } = Astro.props;
+
+const categoryLabels: Record<string, string> = {
+  capture: 'Capture Applications',
+  guiding: 'Guiding',
+  platesolving: 'Plate Solving',
+  planetarium: 'Planetarium',
+  databases: 'Databases',
+  driver: 'Drivers',
+  usb: 'USB Drivers',
+  utilities: 'Utilities',
+  prerequisites: 'Prerequisites',
+};
+
+const categoryOrder = [
+  'capture', 'guiding', 'platesolving', 'planetarium',
+  'databases', 'driver', 'usb', 'utilities', 'prerequisites',
+];
+
+const methodLabels: Record<string, string> = {
+  github: 'GitHub',
+  gitlab: 'GitLab',
+  scrape: 'Scrape',
+  http_head: 'HTTP',
+  pe_download: 'PE',
+  direct_url: 'Direct',
+  manual: 'Manual',
+};
+
+const methodColors: Record<string, string> = {
+  github: 'badge-github',
+  gitlab: 'badge-gitlab',
+  scrape: 'badge-scrape',
+  http_head: 'badge-http',
+  pe_download: 'badge-pe',
+  direct_url: 'badge-direct',
+  manual: 'badge-manual',
+};
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `${diffDays}d ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  return `${diffMonths}mo ago`;
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+// Group entries by category
+const grouped = new Map<string, Array<{ id: string; version?: VersionEntry } & Software>>();
+for (const [id, entry] of Object.entries(software)) {
+  const cat = entry.category;
+  if (!grouped.has(cat)) grouped.set(cat, []);
+  grouped.get(cat)!.push({ id, ...entry, version: versions[id] });
+}
+
+// Sort entries within each category by name
+for (const entries of grouped.values()) {
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const orderedCategories = categoryOrder.filter(c => grouped.has(c));
+---
+
+<div class="catalog">
+  <div class="catalog-search">
+    <input
+      type="search"
+      id="catalog-filter"
+      placeholder="Filter by name, vendor, or ID..."
+      autocomplete="off"
+    />
+    <span class="catalog-count" id="catalog-count">
+      {Object.keys(software).length} packages
+    </span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <colgroup>
+        <col class="col-name" />
+        <col class="col-version" />
+        <col class="col-method" />
+        <col class="col-date" />
+        <col class="col-checked" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Software</th>
+          <th>Latest</th>
+          <th>Method</th>
+          <th>Released</th>
+          <th>Checked</th>
+        </tr>
+      </thead>
+      {orderedCategories.map(category => (
+        <tbody class="catalog-category" data-category={category}>
+          <tr class="category-header">
+            <td colspan="5">
+              <h3 id={category}>{categoryLabels[category] || category}</h3>
+            </td>
+          </tr>
+          {grouped.get(category)!.map(entry => {
+            const v = entry.version;
+            const displayVersion = v?.latest_version && !v.latest_version.startsWith('20')
+              ? v.latest_version
+              : null;
+            return (
+              <tr
+                class="catalog-row"
+                data-search={`${entry.name} ${entry.vendor} ${entry.id} ${entry.description} ${categoryLabels[category] || category}`.toLowerCase()}
+                data-category={category}
+              >
+                <td class="col-name">
+                  {entry.homepage
+                    ? <a href={entry.homepage} target="_blank" rel="noopener">{entry.name}</a>
+                    : entry.name}
+                  <code class="manifest-id">{entry.id}</code>
+                </td>
+                <td class="col-version">
+                  {displayVersion
+                    ? (v?.download_url
+                        ? <a href={v.download_url} class="version-badge" target="_blank" rel="noopener" title="Download">{displayVersion} ↓</a>
+                        : <span class="version-badge">{displayVersion}</span>)
+                    : <span class="version-na">—</span>}
+                </td>
+                <td class="col-method">
+                  {v?.check_method && (
+                    <span class={`badge ${methodColors[v.check_method] || ''}`}>
+                      {methodLabels[v.check_method] || v.check_method}
+                    </span>
+                  )}
+                </td>
+                <td class="col-date">
+                  {v?.release_date
+                    ? formatDate(v.release_date)
+                    : <span class="version-na">—</span>}
+                </td>
+                <td class="col-checked">
+                  {v?.checked_at
+                    ? <span title={v.checked_at}>{timeAgo(v.checked_at)}</span>
+                    : <span class="version-na">—</span>}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      ))}
+    </table>
+  </div>
+
+  <p class="catalog-empty" id="catalog-empty" hidden>
+    No packages match your filter.
+  </p>
+</div>
+
+<script>
+  const input = document.getElementById('catalog-filter') as HTMLInputElement;
+  const rows = document.querySelectorAll<HTMLTableRowElement>('.catalog-row');
+  const categories = document.querySelectorAll<HTMLTableSectionElement>('tbody.catalog-category');
+  const countEl = document.getElementById('catalog-count')!;
+  const emptyEl = document.getElementById('catalog-empty')!;
+  const total = rows.length;
+
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const match = !q || row.dataset.search!.includes(q);
+      row.hidden = !match;
+      if (match) visible++;
+    });
+
+    categories.forEach(tbody => {
+      const visibleRows = tbody.querySelectorAll('.catalog-row:not([hidden])');
+      const header = tbody.querySelector('.category-header') as HTMLTableRowElement;
+      if (header) header.hidden = visibleRows.length === 0;
+    });
+
+    countEl.textContent = q
+      ? `${visible} of ${total} packages`
+      : `${total} packages`;
+    emptyEl.hidden = visible > 0;
+  });
+</script>
+
+<style>
+  .catalog-search {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .catalog-search input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.375rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+    font-size: 0.9rem;
+  }
+
+  .catalog-search input:focus {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: -1px;
+  }
+
+  .catalog-count {
+    white-space: nowrap;
+    color: var(--sl-color-gray-3);
+    font-size: 0.85rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    table-layout: fixed;
+  }
+
+  col.col-name    { width: 40%; }
+  col.col-version { width: 14%; }
+  col.col-method  { width: 12%; }
+  col.col-date    { width: 17%; }
+  col.col-checked { width: 17%; }
+
+  th {
+    text-align: left;
+    padding: 0.5rem;
+    border-bottom: 2px solid var(--sl-color-gray-5);
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    font-size: 0.85rem;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .category-header td {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .category-header h3 {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 1.1rem;
+  }
+
+  tbody.catalog-category:first-of-type .category-header h3 {
+    margin-top: 0.5rem;
+  }
+
+  .col-name a {
+    font-weight: 500;
+  }
+
+  .manifest-id {
+    display: block;
+    font-size: 0.7rem;
+    padding: 0.05rem 0.25rem;
+    color: var(--sl-color-gray-3);
+    background: none;
+  }
+
+  .col-version, .col-method, .col-date, .col-checked {
+    white-space: nowrap;
+  }
+
+  .version-badge {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-green-low);
+    color: var(--sl-color-green-high);
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: var(--sl-font-mono);
+    text-decoration: none;
+  }
+
+  a.version-badge:hover {
+    background: var(--sl-color-green-high);
+    color: var(--sl-color-bg);
+  }
+
+  .version-na {
+    color: var(--sl-color-gray-4);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-github {
+    background: var(--sl-color-purple-low);
+    color: var(--sl-color-purple-high);
+  }
+
+  .badge-gitlab {
+    background: var(--sl-color-orange-low);
+    color: var(--sl-color-orange-high);
+  }
+
+  .badge-scrape {
+    background: var(--sl-color-blue-low);
+    color: var(--sl-color-blue-high);
+  }
+
+  .badge-http, .badge-pe, .badge-direct {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+  }
+
+  .badge-manual {
+    background: var(--sl-color-red-low);
+    color: var(--sl-color-red-high);
+  }
+
+  .col-date, .col-checked {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .catalog-empty {
+    text-align: center;
+    color: var(--sl-color-gray-3);
+    padding: 2rem;
+  }
+</style>

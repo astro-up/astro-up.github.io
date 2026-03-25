@@ -1,0 +1,60 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [versions-updated]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - name: Fetch catalog data
+        run: |
+          mkdir -p src/data
+          curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/stats.json -o src/data/stats.json
+          curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/manifests.json -o src/data/manifests.json
+          curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/versions.json -o src/data/versions.json
+          echo "Fetched stats: $(jq -c '{manifests: .total_manifests, categories: .total_categories}' src/data/stats.json)"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        run: pnpm build
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

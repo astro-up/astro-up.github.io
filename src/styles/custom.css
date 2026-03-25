@@ -1,0 +1,12 @@
+/* Astro-Up docs theme overrides */
+:root {
+	--sl-color-accent-low: #1a1a2e;
+	--sl-color-accent: #4a6cf7;
+	--sl-color-accent-high: #c5d0ff;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #dce4ff;
+	--sl-color-accent: #3451b2;
+	--sl-color-accent-high: #182449;
+}

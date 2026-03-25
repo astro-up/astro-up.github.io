@@ -1,0 +1,32 @@
+---
+title: Astro-Up
+description: A one-click installer and updater for astrophotography software on Windows.
+hero:
+  tagline: Manage drivers, capture apps, plate solvers, and more from a single GUI or CLI. Auto-detects installed versions, fetches updates, and handles backups.
+  actions:
+    - text: Get Started
+      link: /getting-started/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/astro-up/astro-up
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import stats from '../../data/stats.json';
+
+<CardGrid>
+	<Card title={`${stats.total_manifests} Software Packages`} icon="rocket">
+		Manages ASCOM drivers, capture apps, guiders, plate solvers, planetariums, and more across {stats.total_categories} categories.
+	</Card>
+	<Card title="Auto-Detection" icon="magnifier">
+		Scans your system to detect installed versions via registry, executables, and config files.
+	</Card>
+	<Card title="Safe Updates" icon="approve-check">
+		Automatically backs up your configuration, profiles, and equipment settings before every upgrade.
+	</Card>
+	<Card title="Extensible Catalog" icon="add-document">
+		Add any GitHub or GitLab project to your personal catalog with a single command.
+	</Card>
+</CardGrid>

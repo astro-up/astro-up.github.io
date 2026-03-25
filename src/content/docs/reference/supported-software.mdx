@@ -1,0 +1,14 @@
+---
+title: Supported Software
+description: Complete searchable catalog of software managed by Astro-Up.
+---
+
+import SoftwareCatalog from '../../../components/SoftwareCatalog.astro';
+import manifests from '../../../data/manifests.json';
+import versions from '../../../data/versions.json';
+
+The catalog is maintained in the [astro-up-manifests](https://github.com/astro-up/astro-up-manifests) repository and updated independently of the app. Manifests are fetched at runtime — this page reflects the latest compiled catalog.
+
+Subscribe to the [RSS feed](/releases.xml) to get notified when new versions are released.
+
+<SoftwareCatalog software={manifests.software} versions={versions.software} />

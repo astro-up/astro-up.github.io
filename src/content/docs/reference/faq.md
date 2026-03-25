@@ -19,7 +19,7 @@ Yes. Each installation is independent — install Astro-Up on each PC and it wil
 
 ### Is it free?
 
-Yes, Astro-Up is free and open source under the Apache 2.0 license. Support options coming soon.
+Yes, Astro-Up is free and open source under the Apache 2.0 license. If you find it useful, consider buying the developer a coffee (coming soon).
 
 ## Software Catalog
 

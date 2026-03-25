@@ -1,49 +1,45 @@
-# Starlight Starter Kit: Basics
+# Astro-Up Documentation
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+[![Deploy](https://github.com/astro-up/astro-up.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/astro-up/astro-up.github.io/actions/workflows/deploy.yml)
+
+Documentation, software catalog, and RSS feed for [Astro-Up](https://github.com/astro-up/astro-up) — a package manager for astrophotography software on Windows.
+
+**https://astro-up.github.io/**
+
+## Features
+
+- Starlight docs site with getting started guides, reference, and contributing docs
+- Dynamic software catalog with search, filter, version badges, and download links
+- RSS feed at `/releases.xml` for release notifications
+- Data fetched at build time from [astro-up-manifests](https://github.com/astro-up/astro-up-manifests)
+
+## Data Pipeline
 
 ```
-pnpm create astro@latest -- --template starlight
+manifest TOML change → compile-manifests → check-versions → docs rebuild
+                                              ↑
+                         6h cron schedule ────┘
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The deploy workflow fetches `stats.json`, `manifests.json`, and `versions.json` from the manifests repo before building.
 
-## 🚀 Project Structure
+## Development
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+pnpm install
+pnpm dev          # Start dev server at localhost:4321
+pnpm build        # Build to ./dist/
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+For local development with catalog data, fetch the JSON files first:
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+```bash
+mkdir -p src/data
+curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/stats.json -o src/data/stats.json
+curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/manifests.json -o src/data/manifests.json
+curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/versions.json -o src/data/versions.json
+```
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## License
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+[Apache License 2.0](https://github.com/astro-up/astro-up/blob/main/LICENSE)

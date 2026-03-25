@@ -143,8 +143,12 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
           </tr>
           {grouped.get(category)!.map(entry => {
             const v = entry.version;
-            const displayVersion = v?.latest_version && !v.latest_version.startsWith('20')
-              ? v.latest_version
+            const isDateVersion = v?.latest_version?.startsWith('20');
+            const displayVersion = v?.latest_version
+              ? (isDateVersion ? null : v.latest_version)
+              : null;
+            const displayDate = isDateVersion && v?.checked_at
+              ? new Date(v.checked_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
               : null;
             return (
               <tr
@@ -163,7 +167,11 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
                     ? (v?.download_url
                         ? <a href={v.download_url} class="version-badge" target="_blank" rel="noopener" title="Download">{displayVersion} ↓</a>
                         : <span class="version-badge">{displayVersion}</span>)
-                    : <span class="version-na">—</span>}
+                    : displayDate
+                      ? (v?.download_url
+                          ? <a href={v.download_url} class="date-badge" target="_blank" rel="noopener" title="Download (checked {displayDate})">{displayDate} ↓</a>
+                          : <span class="date-badge" title="Version checked by date">{displayDate}</span>)
+                      : <span class="version-na">—</span>}
                 </td>
                 <td class="col-method">
                   {v?.check_method && (
@@ -334,6 +342,22 @@ const orderedCategories = categoryOrder.filter(c => grouped.has(c));
 
   a.version-badge:hover {
     background: var(--sl-color-green-high);
+    color: var(--sl-color-bg);
+  }
+
+  .date-badge {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+    font-size: 0.75rem;
+    font-family: var(--sl-font-mono);
+    text-decoration: none;
+  }
+
+  a.date-badge:hover {
+    background: var(--sl-color-gray-4);
     color: var(--sl-color-bg);
   }
 

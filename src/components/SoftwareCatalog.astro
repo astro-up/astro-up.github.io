@@ -131,34 +131,43 @@ const allMethods = [...new Set(
 ---
 
 <div class="catalog">
-  <div class="catalog-filters">
+  <div class="catalog-search">
     <input
       type="search"
       id="catalog-filter"
       placeholder="Search by name, vendor, or ID..."
       autocomplete="off"
     />
-    <select id="filter-category">
-      <option value="">All categories</option>
-      {orderedCategories.map(cat => (
-        <option value={cat}>{categoryLabels[cat]}</option>
-      ))}
-    </select>
-    <select id="filter-vendor">
-      <option value="">All vendors</option>
-      {allVendors.map(v => (
-        <option value={v}>{vendorLabel(v)}</option>
-      ))}
-    </select>
-    <select id="filter-method">
-      <option value="">All methods</option>
-      {allMethods.map(m => (
-        <option value={m}>{methodLabels[m] || m}</option>
-      ))}
-    </select>
     <span class="catalog-count" id="catalog-count">
       {Object.keys(software).length} packages
     </span>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Category</span>
+    <div class="filter-pills" id="filter-category">
+      {orderedCategories.map(cat => (
+        <button class="pill" data-value={cat}>{categoryLabels[cat]}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Vendor</span>
+    <div class="filter-pills" id="filter-vendor">
+      {allVendors.map(v => (
+        <button class="pill" data-value={v}>{vendorLabel(v)}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Method</span>
+    <div class="filter-pills" id="filter-method">
+      {allMethods.map(m => (
+        <button class="pill" data-value={m}>{methodLabels[m] || m}</button>
+      ))}
+    </div>
   </div>
 
   <div class="table-wrap">
@@ -324,9 +333,6 @@ const allMethods = [...new Set(
 
 <script>
   const textInput = document.getElementById('catalog-filter') as HTMLInputElement;
-  const catSelect = document.getElementById('filter-category') as HTMLSelectElement;
-  const vendorSelect = document.getElementById('filter-vendor') as HTMLSelectElement;
-  const methodSelect = document.getElementById('filter-method') as HTMLSelectElement;
   const rows = document.querySelectorAll<HTMLTableRowElement>('.catalog-row');
   const categories = document.querySelectorAll<HTMLTableSectionElement>('tbody.catalog-category');
   const vendorHeaders = document.querySelectorAll<HTMLTableRowElement>('.vendor-header');
@@ -334,31 +340,55 @@ const allMethods = [...new Set(
   const emptyEl = document.getElementById('catalog-empty')!;
   const total = rows.length;
 
+  // Track active pills per filter group
+  const activeFilters: Record<string, Set<string>> = {
+    category: new Set(),
+    vendor: new Set(),
+    method: new Set(),
+  };
+
+  // Set up pill click handlers
+  document.querySelectorAll('.filter-pills').forEach(group => {
+    const filterType = group.id.replace('filter-', '');
+    group.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const value = (pill as HTMLElement).dataset.value!;
+        const set = activeFilters[filterType];
+        if (set.has(value)) {
+          set.delete(value);
+          pill.classList.remove('active');
+        } else {
+          set.add(value);
+          pill.classList.add('active');
+        }
+        applyFilters();
+      });
+    });
+  });
+
   function applyFilters() {
     const q = textInput.value.toLowerCase().trim();
-    const catFilter = catSelect.value;
-    const vendorFilter = vendorSelect.value;
-    const methodFilter = methodSelect.value;
+    const cats = activeFilters.category;
+    const vendors = activeFilters.vendor;
+    const methods = activeFilters.method;
     let visible = 0;
 
     rows.forEach(row => {
       const matchText = !q || row.dataset.search!.includes(q);
-      const matchCat = !catFilter || row.dataset.category === catFilter;
-      const matchVendor = !vendorFilter || row.dataset.vendor === vendorFilter;
-      const matchMethod = !methodFilter || row.dataset.method === methodFilter;
+      const matchCat = cats.size === 0 || cats.has(row.dataset.category!);
+      const matchVendor = vendors.size === 0 || vendors.has(row.dataset.vendor!);
+      const matchMethod = methods.size === 0 || methods.has(row.dataset.method!);
       const match = matchText && matchCat && matchVendor && matchMethod;
       row.hidden = !match;
       if (match) visible++;
     });
 
-    // Hide category headers with no visible rows
     categories.forEach(tbody => {
       const visibleRows = tbody.querySelectorAll('.catalog-row:not([hidden])');
       const header = tbody.querySelector('.category-header') as HTMLTableRowElement;
       if (header) header.hidden = visibleRows.length === 0;
     });
 
-    // Hide vendor subheaders with no visible rows
     vendorHeaders.forEach(vh => {
       const vendor = vh.dataset.vendor!;
       const tbody = vh.closest('tbody')!;
@@ -366,7 +396,7 @@ const allMethods = [...new Set(
       vh.hidden = visibleVendorRows.length === 0;
     });
 
-    const hasFilters = q || catFilter || vendorFilter || methodFilter;
+    const hasFilters = q || cats.size || vendors.size || methods.size;
     countEl.textContent = hasFilters
       ? `${visible} of ${total} packages`
       : `${total} packages`;
@@ -374,23 +404,18 @@ const allMethods = [...new Set(
   }
 
   textInput.addEventListener('input', applyFilters);
-  catSelect.addEventListener('change', applyFilters);
-  vendorSelect.addEventListener('change', applyFilters);
-  methodSelect.addEventListener('change', applyFilters);
 </script>
 
 <style>
-  .catalog-filters {
+  .catalog-search {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
 
-  .catalog-filters input {
+  .catalog-search input {
     flex: 1;
-    min-width: 12rem;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.375rem;
@@ -399,24 +424,61 @@ const allMethods = [...new Set(
     font-size: 0.9rem;
   }
 
-  .catalog-filters input:focus {
+  .catalog-search input:focus {
     outline: 2px solid var(--sl-color-accent);
     outline-offset: -1px;
-  }
-
-  .catalog-filters select {
-    padding: 0.5rem 0.5rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.375rem;
-    background: var(--sl-color-bg);
-    color: var(--sl-color-text);
-    font-size: 0.8rem;
   }
 
   .catalog-count {
     white-space: nowrap;
     color: var(--sl-color-gray-3);
     font-size: 0.85rem;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 4.5rem;
+  }
+
+  .filter-pills {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-gray-2);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .pill:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent);
+  }
+
+  .pill.active {
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-bg);
   }
 
   .table-wrap {

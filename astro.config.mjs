@@ -28,6 +28,8 @@ sidebar: [
 						{ label: 'Managing Software', slug: 'guides/managing-software' },
 						{ label: 'Custom Tools', slug: 'guides/custom-tools' },
 						{ label: 'Backups', slug: 'guides/backups' },
+						{ label: 'How It Works', slug: 'guides/how-it-works' },
+						{ label: 'Troubleshooting', slug: 'guides/troubleshooting' },
 					],
 				},
 				{
@@ -37,6 +39,7 @@ sidebar: [
 						{ label: 'Supported Software', slug: 'reference/supported-software' },
 						{ label: 'Manifest Format', slug: 'reference/manifest-format' },
 						{ label: 'Configuration', slug: 'reference/configuration' },
+						{ label: 'FAQ', slug: 'reference/faq' },
 					],
 				},
 				{
@@ -44,6 +47,7 @@ sidebar: [
 					items: [
 						{ label: 'Development Setup', slug: 'contributing/development-setup' },
 						{ label: 'Adding Manifests', slug: 'contributing/adding-manifests' },
+						{ label: 'Silent Installers', slug: 'contributing/silent-installers' },
 						{ label: 'Architecture', slug: 'contributing/architecture' },
 					],
 				},

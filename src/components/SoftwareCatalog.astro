@@ -131,28 +131,13 @@ const allMethods = [...new Set(
 ---
 
 <div class="catalog">
-  <div class="catalog-filters">
+  <div class="catalog-filters" id="catalog-filters">
     <input
       type="search"
-      id="catalog-filter"
+      id="catalog-search"
       placeholder="Search by name, vendor, or ID..."
       autocomplete="off"
     />
-    <select id="filter-category" multiple size="1">
-      {orderedCategories.map(cat => (
-        <option value={cat}>{categoryLabels[cat]}</option>
-      ))}
-    </select>
-    <select id="filter-vendor" multiple size="1">
-      {allVendors.map(v => (
-        <option value={v}>{vendorLabel(v)}</option>
-      ))}
-    </select>
-    <select id="filter-method" multiple size="1">
-      {allMethods.map(m => (
-        <option value={m}>{methodLabels[m] || m}</option>
-      ))}
-    </select>
     <span class="catalog-count" id="catalog-count">
       {Object.keys(software).length} packages
     </span>
@@ -320,56 +305,25 @@ const allMethods = [...new Set(
 </div>
 
 <script>
-  const textInput = document.getElementById('catalog-filter') as HTMLInputElement;
-  const catSelect = document.getElementById('filter-category') as HTMLSelectElement;
-  const vendorSelect = document.getElementById('filter-vendor') as HTMLSelectElement;
-  const methodSelect = document.getElementById('filter-method') as HTMLSelectElement;
+  const searchInput = document.getElementById('catalog-search') as HTMLInputElement;
   const rows = document.querySelectorAll<HTMLTableRowElement>('.catalog-row');
-  const categories = document.querySelectorAll<HTMLTableSectionElement>('tbody.catalog-category');
+  const tbodies = document.querySelectorAll<HTMLTableSectionElement>('tbody.catalog-category');
   const vendorHeaders = document.querySelectorAll<HTMLTableRowElement>('.vendor-header');
   const countEl = document.getElementById('catalog-count')!;
   const emptyEl = document.getElementById('catalog-empty')!;
   const total = rows.length;
 
-  function getSelected(sel: HTMLSelectElement): Set<string> {
-    return new Set(Array.from(sel.selectedOptions).map(o => o.value));
-  }
-
-  // Custom multi-select: clicking toggles options, clicking selected deselects
-  [catSelect, vendorSelect, methodSelect].forEach(sel => {
-    sel.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      const option = (e.target as HTMLElement).closest('option') as HTMLOptionElement | null;
-      if (!option) {
-        // Clicked the select itself — toggle open/close
-        sel.classList.toggle('open');
-        return;
-      }
-      option.selected = !option.selected;
-      sel.dispatchEvent(new Event('change'));
-    });
-    // Close on blur
-    sel.addEventListener('blur', () => sel.classList.remove('open'));
-  });
-
-  function applyFilters() {
-    const q = textInput.value.toLowerCase().trim();
-    const cats = getSelected(catSelect);
-    const vendors = getSelected(vendorSelect);
-    const methods = getSelected(methodSelect);
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
     let visible = 0;
 
     rows.forEach(row => {
-      const matchText = !q || row.dataset.search!.includes(q);
-      const matchCat = cats.size === 0 || cats.has(row.dataset.category!);
-      const matchVendor = vendors.size === 0 || vendors.has(row.dataset.vendor!);
-      const matchMethod = methods.size === 0 || methods.has(row.dataset.method!);
-      const match = matchText && matchCat && matchVendor && matchMethod;
+      const match = !q || row.dataset.search!.includes(q);
       row.hidden = !match;
       if (match) visible++;
     });
 
-    categories.forEach(tbody => {
+    tbodies.forEach(tbody => {
       const visibleRows = tbody.querySelectorAll('.catalog-row:not([hidden])');
       const header = tbody.querySelector('.category-header') as HTMLTableRowElement;
       if (header) header.hidden = visibleRows.length === 0;
@@ -382,23 +336,11 @@ const allMethods = [...new Set(
       vh.hidden = visibleVendorRows.length === 0;
     });
 
-    // Update select labels
-    [catSelect, vendorSelect, methodSelect].forEach(sel => {
-      const count = sel.selectedOptions.length;
-      sel.dataset.count = count > 0 ? String(count) : '';
-    });
-
-    const hasFilters = q || cats.size || vendors.size || methods.size;
-    countEl.textContent = hasFilters
+    countEl.textContent = q
       ? `${visible} of ${total} packages`
       : `${total} packages`;
     emptyEl.hidden = visible > 0;
-  }
-
-  textInput.addEventListener('input', applyFilters);
-  catSelect.addEventListener('change', applyFilters);
-  vendorSelect.addEventListener('change', applyFilters);
-  methodSelect.addEventListener('change', applyFilters);
+  });
 </script>
 
 <style>
@@ -407,13 +349,13 @@ const allMethods = [...new Set(
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    flex-wrap: wrap;
   }
 
-  .catalog-filters input {
+  .catalog-filters input[type="search"] {
     flex: 1;
     min-width: 10rem;
-    padding: 0.5rem 0.75rem;
+    height: 2rem;
+    padding: 0 0.75rem;
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.375rem;
     background: var(--sl-color-bg);
@@ -421,41 +363,16 @@ const allMethods = [...new Set(
     font-size: 0.85rem;
   }
 
-  .catalog-filters input:focus {
+  .catalog-filters input[type="search"]:focus {
     outline: 2px solid var(--sl-color-accent);
     outline-offset: -1px;
-  }
-
-  .catalog-filters select {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.375rem;
-    background: var(--sl-color-bg);
-    color: var(--sl-color-text);
-    font-size: 0.85rem;
-    cursor: pointer;
-    min-width: 8rem;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M3 5l3 3 3-3z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    padding-right: 1.5rem;
-  }
-
-  .catalog-filters select:focus {
-    outline: 2px solid var(--sl-color-accent);
-    outline-offset: -1px;
-  }
-
-  .catalog-filters select option:checked {
-    background: var(--sl-color-accent-low);
-    font-weight: 600;
   }
 
   .catalog-count {
     white-space: nowrap;
     color: var(--sl-color-gray-3);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    margin-left: auto;
   }
 
   .table-wrap {

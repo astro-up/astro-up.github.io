@@ -36,7 +36,7 @@ jobs:
           mkdir -p src/data
           curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/stats.json -o src/data/stats.json
           curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/manifests.json -o src/data/manifests.json
-          curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/versions.json -o src/data/versions.json
+          curl -fsSL https://raw.githubusercontent.com/astro-up/astro-up-manifests/main/versions.json -o src/data/versions.json || echo '{"generated_at":"","software":{}}' > src/data/versions.json
           echo "Fetched stats: $(jq -c '{manifests: .total_manifests, categories: .total_categories}' src/data/stats.json)"
 
       - name: Install dependencies
